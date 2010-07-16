@@ -7,6 +7,7 @@ import pygtk
 pygtk.require('2.0')
 import gtk
 import gtk.glade
+import keybinder
 
 import ration
 
@@ -26,8 +27,10 @@ class RationApp:
         Setup the window and canvas.
         """
         self.window = gtk.Window()
+        self.window.set_decorated(False)
         self.window.set_position(gtk.WIN_POS_CENTER_ALWAYS)
         self.window.set_resizable(False)
+        self.window.set_keep_above(True)
         
         self.canvas = gtk.DrawingArea()
         self.canvas.set_events(
@@ -46,8 +49,16 @@ class RationApp:
         width, height = ration.get_screen_resolution()
         width, height = width * CANVAS_SCALE, height * CANVAS_SCALE
         
-        self.window.set_size_request(width, height)
+        self.window.set_size_request(int(width), int(height))
         self.window.show_all()
+        
+        keybinder.bind('<Alt>R', self.hotkey)
+        
+    def hotkey(self):
+        if self.window.get_visible():
+            self.window.hide()
+        else:
+            self.window.show()
     
     def canvas_configure(self, widget, event):
         """
@@ -64,7 +75,7 @@ class RationApp:
         """
         Render the back-buffer to the canvas.
         """
-        x , y, width, height = event.area
+        x, y, width, height = event.area
         
         widget.window.draw_drawable(
             self.window.get_style().fg_gc[gtk.STATE_NORMAL], 
@@ -134,10 +145,10 @@ class RationApp:
         
         self.clear_buffer()
         
-        first_x_box = math.floor(x / (self.canvas_width / BOXES_PER_SIDE))
-        last_x_box = math.floor((x + width) / (self.canvas_width / BOXES_PER_SIDE))
-        first_y_box = math.floor(y / (self.canvas_height / BOXES_PER_SIDE))
-        last_y_box = math.floor((y + height) / (self.canvas_height / BOXES_PER_SIDE))
+        first_x_box = int(math.floor(x / (self.canvas_width / BOXES_PER_SIDE)))
+        last_x_box = int(math.floor((x + width) / (self.canvas_width / BOXES_PER_SIDE)))
+        first_y_box = int(math.floor(y / (self.canvas_height / BOXES_PER_SIDE)))
+        last_y_box = int(math.floor((y + height) / (self.canvas_height / BOXES_PER_SIDE)))
         
         for i in range(first_x_box, last_x_box + 1):
             for j in range(first_y_box, last_y_box + 1):
@@ -146,12 +157,12 @@ class RationApp:
                 y1 = (self.canvas_height / BOXES_PER_SIDE) * j
                 y2 = (self.canvas_height / BOXES_PER_SIDE) * (j + 1)
 
-                self.buffer_pixmap.draw_rectangle(self.window.get_style().black_gc, True, x1, y1, x2 - x1, y2 - y1)
+                self.buffer_pixmap.draw_rectangle(self.window.get_style().black_gc, True, int(x1), int(y1), int(x2 - x1), int(y2 - y1))
         
         self.buffer_pixmap.draw_rectangle(
             self.window.get_style().fg_gc[gtk.STATE_NORMAL], 
             False, 
-            x, y, width, height)
+            int(x), int(y), int(width), int(height))
         self.blit_buffer()
         
     def blit_buffer(self):
