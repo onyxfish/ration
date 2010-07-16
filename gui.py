@@ -16,7 +16,8 @@ BOXES_PER_SIDE = 8
 
 class RationApp:
     """
-    TODO
+    An application to quickly resize windows to fill discrete portions of the
+    screen in GTK-based Linux distributions.
     """
     mouse_down = None
     canvas_width = 0
