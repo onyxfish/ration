@@ -13,7 +13,3 @@ def get_screen_resolution():
     height = int(match.group(2))
     
     return width, height
-    
-def 
-    
-print get_screen_resolution()
