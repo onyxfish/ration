@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import math
 import sys
 
 import pygtk
@@ -8,6 +9,9 @@ import gtk
 import gtk.glade
 
 import ration
+
+CANVAS_SCALE = 0.2
+BOXES_PER_SIDE = 8
 
 class RationApp:
     """
@@ -23,6 +27,7 @@ class RationApp:
         """
         self.window = gtk.Window()
         self.window.set_position(gtk.WIN_POS_CENTER_ALWAYS)
+        self.window.set_resizable(False)
         
         self.canvas = gtk.DrawingArea()
         self.canvas.set_events(
@@ -39,7 +44,7 @@ class RationApp:
         self.canvas.connect('button-release-event', self.canvas_button_release)
         
         width, height = ration.get_screen_resolution()
-        width, height = width * 0.2, height * 0.2
+        width, height = width * CANVAS_SCALE, height * CANVAS_SCALE
         
         self.window.set_size_request(width, height)
         self.window.show_all()
@@ -51,7 +56,7 @@ class RationApp:
         x, y, self.canvas_width, self.canvas_height = widget.get_allocation()
         
         self.buffer_pixmap = gtk.gdk.Pixmap(widget.window, self.canvas_width, self.canvas_height)
-        self.buffer_pixmap.draw_rectangle(widget.get_style().white_gc, True, 0, 0, self.canvas_width, self.canvas_height)
+        self.clear_buffer()
         
         return True
     
@@ -89,7 +94,8 @@ class RationApp:
         """
         Redraw the canvas with the latest selection.
         """
-        self.draw_selection(event)
+        self.clear_buffer()
+        self.blit_buffer()
         
         self.mouse_down = None
         
@@ -100,6 +106,14 @@ class RationApp:
         Clear the back-buffer.
         """
         self.buffer_pixmap.draw_rectangle(self.window.get_style().white_gc, True, 0, 0, self.canvas_width, self.canvas_height)
+        
+        for i in range(0, BOXES_PER_SIDE):
+            x = (self.canvas_width / BOXES_PER_SIDE) * i
+            self.buffer_pixmap.draw_line(self.window.get_style().black_gc, x, 0, x, self.canvas_height)
+        
+        for j in range(0, BOXES_PER_SIDE):
+            y = (self.canvas_height / BOXES_PER_SIDE) * j
+            self.buffer_pixmap.draw_line(self.window.get_style().black_gc, 0, y, self.canvas_width, y)
     
     def draw_selection(self, event):
         """
@@ -119,6 +133,21 @@ class RationApp:
             y -= height
         
         self.clear_buffer()
+        
+        first_x_box = math.floor(x / (self.canvas_width / BOXES_PER_SIDE))
+        last_x_box = math.floor((x + width) / (self.canvas_width / BOXES_PER_SIDE))
+        first_y_box = math.floor(y / (self.canvas_height / BOXES_PER_SIDE))
+        last_y_box = math.floor((y + height) / (self.canvas_height / BOXES_PER_SIDE))
+        
+        for i in range(first_x_box, last_x_box + 1):
+            for j in range(first_y_box, last_y_box + 1):
+                x1 = (self.canvas_width / BOXES_PER_SIDE) * i
+                x2 = (self.canvas_width / BOXES_PER_SIDE) * (i + 1)
+                y1 = (self.canvas_height / BOXES_PER_SIDE) * j
+                y2 = (self.canvas_height / BOXES_PER_SIDE) * (j + 1)
+
+                self.buffer_pixmap.draw_rectangle(self.window.get_style().black_gc, True, x1, y1, x2 - x1, y2 - y1)
+        
         self.buffer_pixmap.draw_rectangle(
             self.window.get_style().fg_gc[gtk.STATE_NORMAL], 
             False, 
