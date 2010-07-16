@@ -14,4 +14,6 @@ def get_screen_resolution():
     
     return width, height
     
+def 
+    
 print get_screen_resolution()
