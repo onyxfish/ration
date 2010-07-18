@@ -35,7 +35,16 @@ def resize_window(window_id, x, y, width, height):
     """
     Use wmctrl to resize a window.
     """
+    # Unmaximize window (otherwise resize may fail)
+    print ' '.join(['wmctrl', '-i', '-r', window_id, '-b', 'remove,maximized_vert,maximized_horz'])
+    p = subprocess.Popen(['wmctrl', '-i', '-r', window_id, '-b', 'remove,maximized_vert,maximized_horz'], stdout=subprocess.PIPE)
+    output = p.communicate()[0]
+    
+    # Format size string
     size = '0,%i,%i,%i,%i' % (x, y, width, height)
+    
+    # Resize window
     print ' '.join(['wmctrl', '-i', '-r', window_id, '-e', size])
     p = subprocess.Popen(['wmctrl', '-i', '-r', window_id, '-e', size], stdout=subprocess.PIPE)
     output = p.communicate()[0]
+
