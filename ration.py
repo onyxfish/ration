@@ -144,6 +144,10 @@ class RationApp:
         
         self.mouse_down = None
         
+        window_id = windows.select_window()
+        
+        windows.resize_window(window_id, *self.new_window_size)
+        
         return True
         
     def update(self, event, selection=True):
@@ -152,6 +156,7 @@ class RationApp:
         """
         self.compute_selection_rectangle(event)
         self.compute_selected_boxes()
+        self.compute_new_window_size()
         self.clear_buffer()
         self.draw_selected_boxes()
         self.draw_grid()
@@ -187,6 +192,12 @@ class RationApp:
                                int(math.floor(self.selection[1] / (self.canvas_height / BOXES_PER_SIDE))),
                                int(math.floor(self.selection[2] / (self.canvas_width / BOXES_PER_SIDE)) + 1),
                                int(math.floor(self.selection[3] / (self.canvas_height / BOXES_PER_SIDE)) + 1))
+        
+    def compute_new_window_size(self):
+        self.new_window_size = (self.selected_boxes[0] * self.canvas_width / BOXES_PER_SIDE / CANVAS_SCALE,
+                                self.selected_boxes[1] * self.canvas_height / BOXES_PER_SIDE / CANVAS_SCALE,
+                                (self.selected_boxes[2] - self.selected_boxes[0]) * self.canvas_width / BOXES_PER_SIDE / CANVAS_SCALE,
+                                (self.selected_boxes[3] - self.selected_boxes[1]) * self.canvas_height / BOXES_PER_SIDE / CANVAS_SCALE)
     
     def clear_buffer(self):
         """
