@@ -124,7 +124,7 @@ class RationApp:
         Redraw the canvas with the latest selection.
         """
         if self.mouse_down:
-            self.draw_selection(event)
+            self.update(event)
         
         return True
     
@@ -140,32 +140,29 @@ class RationApp:
         """
         Redraw the canvas with the latest selection.
         """
-        self.clear_buffer()
-        self.blit_buffer()
+        self.update(event, selection=False)
         
         self.mouse_down = None
         
         return True
-    
-    def clear_buffer(self):
+        
+    def update(self, event, selection=True):
         """
-        Clear the back-buffer.
+        Updates selection coordinates and redraws the GUI.
         """
-        self.buffer_pixmap.draw_rectangle(self.window.get_style().white_gc, True, 0, 0, self.canvas_width, self.canvas_height)
+        self.compute_selection_rectangle(event)
+        self.compute_selected_boxes()
+        self.clear_buffer()
+        self.draw_selected_boxes()
         self.draw_grid()
+        if selection: self.draw_selection()
+        self.blit_buffer()
         
-    def draw_grid(self):
-        for i in range(0, BOXES_PER_SIDE + 1):
-            x = (self.canvas_width / BOXES_PER_SIDE) * i
-            self.buffer_pixmap.draw_line(self.window.get_style().black_gc, x, 0, x, self.canvas_height)
-        
-        for j in range(0, BOXES_PER_SIDE + 1):
-            y = (self.canvas_height / BOXES_PER_SIDE) * j
-            self.buffer_pixmap.draw_line(self.window.get_style().black_gc, 0, y, self.canvas_width, y)
-    
-    def draw_selection(self, event):
+    def compute_selection_rectangle(self, event):
         """
-        Draw the current selection box onto the back-buffer.
+        Compute the shape of the selection, taking into account negative selection coordinates.
+        
+        (i.e. lower-right to upper-left)
         """
         x = self.mouse_down[0]
         y = self.mouse_down[1]
@@ -179,29 +176,60 @@ class RationApp:
         if height < 0:
             height = -height
             y -= height
+            
+        self.selection = (int(x), int(y), int(x + width), int(y + height))
+    
+    def compute_selected_boxes(self):
+        """
+        Use mouse coordinates to determine which boxes have been selected.
+        """
+        self.selected_boxes = (int(math.floor(self.selection[0] / (self.canvas_width / BOXES_PER_SIDE))),
+                               int(math.floor(self.selection[1] / (self.canvas_height / BOXES_PER_SIDE))),
+                               int(math.floor(self.selection[2] / (self.canvas_width / BOXES_PER_SIDE)) + 1),
+                               int(math.floor(self.selection[3] / (self.canvas_height / BOXES_PER_SIDE)) + 1))
+    
+    def clear_buffer(self):
+        """
+        Clear the back-buffer.
+        """
+        self.buffer_pixmap.draw_rectangle(self.window.get_style().white_gc, True, 0, 0, self.canvas_width, self.canvas_height)
+        self.draw_grid()
         
-        self.clear_buffer()
+    def draw_grid(self):
+        """
+        Draw the selection grid onto the back-buffer.
+        """
+        for i in range(0, BOXES_PER_SIDE + 1):
+            x = (self.canvas_width / BOXES_PER_SIDE) * i
+            self.buffer_pixmap.draw_line(self.window.get_style().black_gc, x, 0, x, self.canvas_height)
         
-        first_x_box = int(math.floor(x / (self.canvas_width / BOXES_PER_SIDE)))
-        last_x_box = int(math.floor((x + width) / (self.canvas_width / BOXES_PER_SIDE)))
-        first_y_box = int(math.floor(y / (self.canvas_height / BOXES_PER_SIDE)))
-        last_y_box = int(math.floor((y + height) / (self.canvas_height / BOXES_PER_SIDE)))
-        
-        for i in range(first_x_box, last_x_box + 1):
-            for j in range(first_y_box, last_y_box + 1):
-                x1 = (self.canvas_width / BOXES_PER_SIDE) * i
-                x2 = (self.canvas_width / BOXES_PER_SIDE) * (i + 1)
-                y1 = (self.canvas_height / BOXES_PER_SIDE) * j
-                y2 = (self.canvas_height / BOXES_PER_SIDE) * (j + 1)
-
-                self.buffer_pixmap.draw_rectangle(self.window.get_style().black_gc, True, int(x1), int(y1), int(x2 - x1), int(y2 - y1))
-        
+        for j in range(0, BOXES_PER_SIDE + 1):
+            y = (self.canvas_height / BOXES_PER_SIDE) * j
+            self.buffer_pixmap.draw_line(self.window.get_style().black_gc, 0, y, self.canvas_width, y)
+    
+    def draw_selection(self):
+        """
+        Draw the current selection box onto the back-buffer.
+        """
         self.buffer_pixmap.draw_rectangle(
             self.window.get_style().fg_gc[gtk.STATE_NORMAL], 
             False, 
-            int(x), int(y), int(width), int(height))
-        self.blit_buffer()
+            self.selection[0],
+            self.selection[1],
+            self.selection[2] - self.selection[0],
+            self.selection[3] - self.selection[1])
         
+    def draw_selected_boxes(self):
+        """
+        Draw the selected boxes in a different color.
+        """
+        x1 = self.selected_boxes[0] * self.canvas_width / BOXES_PER_SIDE
+        y1 = self.selected_boxes[1] * self.canvas_height / BOXES_PER_SIDE
+        x2 = self.selected_boxes[2] * self.canvas_width / BOXES_PER_SIDE
+        y2 = self.selected_boxes[3] * self.canvas_height / BOXES_PER_SIDE
+
+        self.buffer_pixmap.draw_rectangle(self.window.get_style().black_gc, True, int(x1), int(y1), int(x2 - x1), int(y2 - y1))
+   
     def blit_buffer(self):
         """
         Copy the back-buffer to the visible canvas.
@@ -212,15 +240,24 @@ class RationApp:
             0, 0, 0, 0, self.canvas_width, self.canvas_height)
         
     def hotkey(self):
+        """
+        Toggle the visibility of the window.
+        """
         if self.window.get_visible():
             self.window.hide()
         else:
             self.window.show()
         
     def bind_hotkey(self):
+        """
+        Bind the toggle hotkey.
+        """
         keybinder.bind(HOTKEY, self.hotkey)
     
     def unbind_hotkey(self):
+        """
+        Unbind the toggle hotkey.
+        """
         keybinder.unbind(HOTKEY)
         
 if __name__ == '__main__':
