@@ -49,8 +49,9 @@ class RationApp:
         self.canvas.connect('button-release-event', self.canvas_button_release)
         
         width, height = windows.get_screen_resolution()
-        width, height = width * CANVAS_SCALE, height * CANVAS_SCALE
-        
+        width = math.floor(width * CANVAS_SCALE / BOXES_PER_SIDE) * BOXES_PER_SIDE + 1
+        height = math.floor(height * CANVAS_SCALE / BOXES_PER_SIDE) * BOXES_PER_SIDE + 1
+
         self.setup_status_icon()
         
         self.window.set_size_request(int(width), int(height))
@@ -151,12 +152,14 @@ class RationApp:
         Clear the back-buffer.
         """
         self.buffer_pixmap.draw_rectangle(self.window.get_style().white_gc, True, 0, 0, self.canvas_width, self.canvas_height)
+        self.draw_grid()
         
-        for i in range(0, BOXES_PER_SIDE):
+    def draw_grid(self):
+        for i in range(0, BOXES_PER_SIDE + 1):
             x = (self.canvas_width / BOXES_PER_SIDE) * i
             self.buffer_pixmap.draw_line(self.window.get_style().black_gc, x, 0, x, self.canvas_height)
         
-        for j in range(0, BOXES_PER_SIDE):
+        for j in range(0, BOXES_PER_SIDE + 1):
             y = (self.canvas_height / BOXES_PER_SIDE) * j
             self.buffer_pixmap.draw_line(self.window.get_style().black_gc, 0, y, self.canvas_width, y)
     
