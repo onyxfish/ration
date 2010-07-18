@@ -148,6 +148,10 @@ class RationApp:
         
         windows.resize_window(window_id, *self.new_window_size)
         
+        self.clear_buffer()
+        self.draw_grid()
+        self.blit_buffer()
+        
         return True
         
     def update(self, event, selection=True):
