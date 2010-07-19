@@ -35,16 +35,26 @@ def resize_window(window_id, x, y, width, height):
     """
     Use wmctrl to resize a window.
     """
-    # Unmaximize window (otherwise resize may fail)
-    print ' '.join(['wmctrl', '-i', '-r', window_id, '-b', 'remove,maximized_vert,maximized_horz'])
-    p = subprocess.Popen(['wmctrl', '-i', '-r', window_id, '-b', 'remove,maximized_vert,maximized_horz'], stdout=subprocess.PIPE)
+    # Unmaximize window first (otherwise resize may fail)
+    command = ['wmctrl', '-i', '-r', window_id, '-b', 'remove,maximized_vert,maximized_horz']
+    print ' '.join(command)
+    p = subprocess.Popen(command, stdout=subprocess.PIPE)
     output = p.communicate()[0]
     
     # Format size string
     size = '0,%i,%i,%i,%i' % (x, y, width, height)
     
     # Resize window
-    print ' '.join(['wmctrl', '-i', '-r', window_id, '-e', size])
-    p = subprocess.Popen(['wmctrl', '-i', '-r', window_id, '-e', size], stdout=subprocess.PIPE)
+    command = ['wmctrl', '-i', '-r', window_id, '-e', size]
+    print ' '.join(command)
+    p = subprocess.Popen(command, stdout=subprocess.PIPE)
     output = p.communicate()[0]
 
+def maximize_window(window_id):
+    """
+    Use wmctrl to maximize a window.
+    """
+    command = ['wmctrl', '-i', '-r', window_id, '-b', 'add,maximized_vert,maximized_horz']
+    print ' '.join(command)
+    p = subprocess.Popen(command, stdout=subprocess.PIPE)
+    output = p.communicate()[0]

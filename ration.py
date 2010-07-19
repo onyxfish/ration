@@ -146,6 +146,10 @@ class RationApp:
         
         window_id = windows.select_window()
         
+        # If all boxes selected then maximize instead of resizing
+        if self.selected_boxes == (0, 0, BOXES_PER_SIDE, BOXES_PER_SIDE):
+            windows.maximize_window(window_id)
+            
         windows.resize_window(window_id, *self.new_window_size)
         
         self.clear_buffer()
