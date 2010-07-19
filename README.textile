@@ -1,0 +1,6 @@
+A "Divvy":http://www.mizage.com/divvy/-like application for quickly arranging windows in GTK-based Linux distributions.
+
+Author: Christopher Groskopf
+Contact: staringmonkey@gmail.com
+
+This software is licensed under the MIT license. See COPYING for details.
