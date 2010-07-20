@@ -144,13 +144,15 @@ class RationApp:
         
         self.mouse_down = None
         
-        window_id = windows.select_window()
+        window_id, window_name = windows.select_window()
         
-        # If all boxes selected then maximize instead of resizing
-        if self.selected_boxes == (0, 0, BOXES_PER_SIDE, BOXES_PER_SIDE):
-            windows.maximize_window(window_id)
+        if window_id != hex(self.window.window.xid)[:-1] and \
+            'Edge Panel' not in window_name:
+            # If all boxes selected then maximize instead of resizing
+            if self.selected_boxes == (0, 0, BOXES_PER_SIDE, BOXES_PER_SIDE):
+                windows.maximize_window(window_id)
             
-        windows.resize_window(window_id, *self.new_window_size)
+            windows.resize_window(window_id, *self.new_window_size)
         
         self.clear_buffer()
         self.draw_grid()
@@ -202,6 +204,9 @@ class RationApp:
                                int(math.floor(self.selection[3] / (self.canvas_height / BOXES_PER_SIDE)) + 1))
         
     def compute_new_window_size(self):
+        """
+        Translate the selection size to the actual screen size a window should be resized too.
+        """
         self.new_window_size = (self.selected_boxes[0] * self.canvas_width / BOXES_PER_SIDE / CANVAS_SCALE,
                                 self.selected_boxes[1] * self.canvas_height / BOXES_PER_SIDE / CANVAS_SCALE,
                                 (self.selected_boxes[2] - self.selected_boxes[0]) * self.canvas_width / BOXES_PER_SIDE / CANVAS_SCALE,
@@ -230,8 +235,13 @@ class RationApp:
         """
         Draw the current selection box onto the back-buffer.
         """
+        color = self.buffer_pixmap.get_colormap().alloc_color("#FF9999")
+        
+        style = self.window.get_style()
+        style.fg[gtk.STATE_NORMAL] = color
+        
         self.buffer_pixmap.draw_rectangle(
-            self.window.get_style().fg_gc[gtk.STATE_NORMAL], 
+            style.fg_gc[gtk.STATE_NORMAL], 
             False, 
             self.selection[0],
             self.selection[1],

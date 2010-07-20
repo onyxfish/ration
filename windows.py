@@ -27,9 +27,9 @@ def select_window():
     output = p.communicate()[0]
     
     # e.g. "Window id: 0x4400088"
-    match = re.search(r'Window id: (0x[0-9a-f]+)', output)
+    match = re.search(r'Window id: (0x[0-9a-f]+) "(.+)"', output)
     
-    return match.group(1)
+    return (match.group(1), match.group(2))
 
 def resize_window(window_id, x, y, width, height):
     """
