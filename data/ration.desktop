@@ -1,0 +1,15 @@
+[Desktop Entry]
+Name=Ration
+Comment=Civilized window management
+TryExec=ration
+Exec=ration
+Icon=window-new
+Type=Application
+X-GNOME-DocPath=
+X-GNOME-Bugzilla-Bugzilla=
+X-GNOME-Bugzilla-Product=
+X-GNOME-Bugzilla-Component=
+X-GNOME-Bugzilla-Version=
+Categories=GNOME;GTK;Utility;
+StartupNotify=true
+X-Ubuntu-Gettext-Domain=ration
