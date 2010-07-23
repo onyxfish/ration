@@ -14,11 +14,11 @@ Exit the application by right-clicking on its icon in the status bar and selecti
 
 h5. Installation
 
-pip install ration
+pre. pip install ration
 
-*or from source*
+or (from source)
 
-sudo python setup.py install
+pre. sudo python setup.py install
 
 h5. Bugs
 
