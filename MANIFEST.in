@@ -1,0 +1,4 @@
+include README.textile
+inclue COPYING
+include requirements.txt
+recursive-include data *
