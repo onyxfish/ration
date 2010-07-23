@@ -1,6 +1,18 @@
-A "Divvy-like":http://www.mizage.com/divvy/ application for quickly arranging windows in GTK-based Linux distributions.
+h2. Ration
+
+h5. About
+
+Ration is a "Divvy-like":http://www.mizage.com/divvy/ application for quickly arranging  and resizing windows in GTK-based Linux distributions.
+
+h5. Installation
+
+sudo python install setup.py
+
+h5. Contact
 
 Author: Christopher Groskopf
-Contact: staringmonkey@gmail.com
+Email: staringmonkey@gmail.com
+
+h5. License
 
 This software is licensed under the MIT license. See COPYING for details.
