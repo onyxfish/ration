@@ -14,7 +14,11 @@ Exit the application by right-clicking on its icon in the status bar and selecti
 
 h5. Installation
 
-sudo python install setup.py
+pip install ration
+
+*or from source*
+
+sudo python setup.py install
 
 h5. Bugs
 
