@@ -8,6 +8,10 @@ h5. Installation
 
 sudo python install setup.py
 
+h5. Bugs
+
+Report bugs at "http://bouvard.lighthouseapp.com/projects/56753-ration/overview":http://bouvard.lighthouseapp.com/projects/56753-ration/overview
+
 h5. Contact
 
 Author: Christopher Groskopf
