@@ -9,10 +9,8 @@ setup(name='ration',
       author_email='staringmonkey@gmail.com',
       url='http://github.com/bouvard/ration',
       license='MIT',
-      packages=['ration', 'src'],
-      package_dir={'ration': ''},
-      package_data={'ration': []},
-      scripts=['ration'],
+      packages=['ration'],
+      scripts=['scripts/ration'],
       data_files=[('share/applications', ['data/ration.desktop'])]
      )
 
