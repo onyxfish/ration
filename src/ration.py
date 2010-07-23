@@ -59,6 +59,13 @@ class RationApp:
         
         self.bind_hotkey()
         
+    def go(self):
+        """
+        Launch the program main loop.
+        """
+        atexit.register(self.unbind_hotkey)
+        gtk.main()
+        
     def setup_status_icon(self):
         """
         Setup the status icon that functions as a main menu.
@@ -293,6 +300,5 @@ class RationApp:
         
 if __name__ == '__main__':
     app = RationApp()
-    atexit.register(app.unbind_hotkey)
-    gtk.main()
+    app.go()
 
