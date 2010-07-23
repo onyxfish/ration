@@ -77,7 +77,7 @@ class RationApp:
         self.menu.show_all()
 
         self.status_icon = gtk.StatusIcon()
-        self.status_icon.set_from_stock(gtk.STOCK_FIND)
+        self.status_icon.set_from_stock(gtk.STOCK_ZOOM_FIT)
         self.status_icon.set_tooltip('Ration')
         self.status_icon.set_visible(True)
 

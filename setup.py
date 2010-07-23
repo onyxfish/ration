@@ -3,7 +3,7 @@
 from distutils.core import setup
 
 setup(name='ration',
-      version='0.1',
+      version='0.1.1',
       description='Civilized window management',
       author='Christopher Groskopf',
       author_email='staringmonkey@gmail.com',

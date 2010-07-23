@@ -4,6 +4,14 @@ h5. About
 
 Ration is a "Divvy-like":http://www.mizage.com/divvy/ application for quickly arranging  and resizing windows in GTK-based Linux distributions.
 
+h5. Usage
+
+Drag a selection in the grid and then click a window to automatically resize it to fill that portion of the screen.
+
+Show/hide the grid by pressing <Alt>R (currently not configurable).
+
+Exit the application by right-clicking on its icon in the status bar and selecting Quit.
+
 h5. Installation
 
 sudo python install setup.py
