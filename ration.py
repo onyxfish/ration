@@ -170,7 +170,7 @@ class RationApp:
         self.clear_buffer()
         self.draw_selected_boxes()
         self.draw_grid()
-        if selection: self.draw_selection()
+#        if selection: self.draw_selection()
         self.blit_buffer()
         
     def compute_selection_rectangle(self, event):
@@ -235,10 +235,7 @@ class RationApp:
         """
         Draw the current selection box onto the back-buffer.
         """
-        color = self.buffer_pixmap.get_colormap().alloc_color("#FF9999")
-        
         style = self.window.get_style()
-        style.fg[gtk.STATE_NORMAL] = color
         
         self.buffer_pixmap.draw_rectangle(
             style.fg_gc[gtk.STATE_NORMAL], 
@@ -257,7 +254,12 @@ class RationApp:
         x2 = self.selected_boxes[2] * self.canvas_width / BOXES_PER_SIDE
         y2 = self.selected_boxes[3] * self.canvas_height / BOXES_PER_SIDE
 
-        self.buffer_pixmap.draw_rectangle(self.window.get_style().black_gc, True, int(x1), int(y1), int(x2 - x1), int(y2 - y1))
+        color = self.window.get_colormap().alloc_color("#999999", False, True)
+
+        gc = self.window.window.new_gc()
+        gc.foreground = color
+        
+        self.buffer_pixmap.draw_rectangle(gc, True, int(x1), int(y1), int(x2 - x1), int(y2 - y1))
    
     def blit_buffer(self):
         """
