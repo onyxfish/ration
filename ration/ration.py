@@ -154,7 +154,8 @@ class RationApp:
         window_id, window_name = windows.select_window()
         
         if window_id != hex(self.window.window.xid)[:-1] and \
-            'Edge Panel' not in window_name:
+            'Edge Panel' not in window_name and \
+            'x-nautilus-desktop' != window_name:
             # If all boxes selected then maximize instead of resizing
             if self.selected_boxes == (0, 0, BOXES_PER_SIDE, BOXES_PER_SIDE):
                 windows.maximize_window(window_id)
