@@ -33,6 +33,8 @@ class RationApp:
         self.window.set_position(gtk.WIN_POS_CENTER_ALWAYS)
         self.window.set_resizable(False)
         self.window.set_keep_above(True)
+        self.window.set_skip_pager_hint(True)
+        self.window.set_skip_taskbar_hint(True)
         
         self.canvas = gtk.DrawingArea()
         self.canvas.set_events(

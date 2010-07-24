@@ -6,7 +6,9 @@ Ration is a "Divvy-like":http://www.mizage.com/divvy/ application for quickly ar
 
 h5. Requirements
 
-sudo apt-get install python-gtk2 python-keybinder wmctrl
+Python requires several libraries. To install them on Debian-based systems (e.g. Ubuntu) execute the follow command:
+
+pre. sudo apt-get install python-gtk2 python-keybinder wmctrl
 
 h5. Installation
 
