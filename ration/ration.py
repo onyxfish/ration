@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+import ConfigParser
+import os
+
 import atexit
 import math
 import sys
@@ -11,9 +14,14 @@ import keybinder
 
 import windows
 
-HOTKEY = '<Alt>R'
-CANVAS_SCALE = 0.2
-BOXES_PER_SIDE = 8
+CONFIG = {
+        'hotkey': '<Alt>R',
+        'canvas_scale': 0.2,
+        'width': 8,
+        'height': 8
+}
+
+CONFIG_FILE = os.path.expanduser('~/.ration')
 
 class RationApp:
     """
@@ -25,6 +33,23 @@ class RationApp:
     canvas_height = 0
 
     def __init__(self):
+        """
+        Read Config
+        """
+        if os.path.isfile(CONFIG_FILE):
+            cfg = ConfigParser.ConfigParser()
+
+            with open(CONFIG_FILE) as f:
+                cfg.readfp(f)
+
+            for option in CONFIG:
+                method = 'getint' if type(CONFIG[option]) == int else 'get'
+
+                try:
+                    CONFIG[option] = getattr(cfg, method)('Config', option)
+                except:
+                    continue
+
         """
         Setup the window and canvas.
         """
@@ -51,8 +76,8 @@ class RationApp:
         self.canvas.connect('button-release-event', self.canvas_button_release)
         
         width, height = windows.get_screen_resolution()
-        width = math.floor(width * CANVAS_SCALE / BOXES_PER_SIDE) * BOXES_PER_SIDE + 1
-        height = math.floor(height * CANVAS_SCALE / BOXES_PER_SIDE) * BOXES_PER_SIDE + 1
+        width = math.floor(width * CONFIG['canvas_scale'] / CONFIG['width']) * CONFIG['width'] + 1
+        height = math.floor(height * CONFIG['canvas_scale'] / CONFIG['height']) * CONFIG['height'] + 1
 
         self.setup_status_icon()
         
@@ -159,7 +184,7 @@ class RationApp:
             'Edge Panel' not in window_name and \
             'x-nautilus-desktop' != window_name:
             # If all boxes selected then maximize instead of resizing
-            if self.selected_boxes == (0, 0, BOXES_PER_SIDE, BOXES_PER_SIDE):
+            if self.selected_boxes == (0, 0, CONFIG['width'], CONFIG['height']):
                 windows.maximize_window(window_id)
             
             windows.resize_window(window_id, *self.new_window_size)
@@ -208,19 +233,19 @@ class RationApp:
         """
         Use mouse coordinates to determine which boxes have been selected.
         """
-        self.selected_boxes = (int(math.floor(self.selection[0] / (self.canvas_width / BOXES_PER_SIDE))),
-                               int(math.floor(self.selection[1] / (self.canvas_height / BOXES_PER_SIDE))),
-                               int(math.floor(self.selection[2] / (self.canvas_width / BOXES_PER_SIDE)) + 1),
-                               int(math.floor(self.selection[3] / (self.canvas_height / BOXES_PER_SIDE)) + 1))
+        self.selected_boxes = (int(math.floor(self.selection[0] / (self.canvas_width / CONFIG['width']))),
+                               int(math.floor(self.selection[1] / (self.canvas_height / CONFIG['height']))),
+                               int(math.floor(self.selection[2] / (self.canvas_width / CONFIG['width'])) + 1),
+                               int(math.floor(self.selection[3] / (self.canvas_height / CONFIG['height'])) + 1))
         
     def compute_new_window_size(self):
         """
         Translate the selection size to the actual screen size a window should be resized too.
         """
-        self.new_window_size = (self.selected_boxes[0] * self.canvas_width / BOXES_PER_SIDE / CANVAS_SCALE,
-                                self.selected_boxes[1] * self.canvas_height / BOXES_PER_SIDE / CANVAS_SCALE,
-                                (self.selected_boxes[2] - self.selected_boxes[0]) * self.canvas_width / BOXES_PER_SIDE / CANVAS_SCALE,
-                                (self.selected_boxes[3] - self.selected_boxes[1]) * self.canvas_height / BOXES_PER_SIDE / CANVAS_SCALE)
+        self.new_window_size = (self.selected_boxes[0] * self.canvas_width / CONFIG['width'] / CONFIG['canvas_scale'],
+                                self.selected_boxes[1] * self.canvas_height / CONFIG['height'] / CONFIG['canvas_scale'],
+                                (self.selected_boxes[2] - self.selected_boxes[0]) * self.canvas_width / CONFIG['width'] / CONFIG['canvas_scale'],
+                                (self.selected_boxes[3] - self.selected_boxes[1]) * self.canvas_height / CONFIG['height'] / CONFIG['canvas_scale'])
     
     def clear_buffer(self):
         """
@@ -233,12 +258,12 @@ class RationApp:
         """
         Draw the selection grid onto the back-buffer.
         """
-        for i in range(0, BOXES_PER_SIDE + 1):
-            x = (self.canvas_width / BOXES_PER_SIDE) * i
+        for i in range(0, CONFIG['width'] + 1):
+            x = (self.canvas_width / CONFIG['width']) * i
             self.buffer_pixmap.draw_line(self.window.get_style().black_gc, x, 0, x, self.canvas_height)
         
-        for j in range(0, BOXES_PER_SIDE + 1):
-            y = (self.canvas_height / BOXES_PER_SIDE) * j
+        for j in range(0, CONFIG['height'] + 1):
+            y = (self.canvas_height / CONFIG['height']) * j
             self.buffer_pixmap.draw_line(self.window.get_style().black_gc, 0, y, self.canvas_width, y)
     
     def draw_selection(self):
@@ -259,10 +284,10 @@ class RationApp:
         """
         Draw the selected boxes in a different color.
         """
-        x1 = self.selected_boxes[0] * self.canvas_width / BOXES_PER_SIDE
-        y1 = self.selected_boxes[1] * self.canvas_height / BOXES_PER_SIDE
-        x2 = self.selected_boxes[2] * self.canvas_width / BOXES_PER_SIDE
-        y2 = self.selected_boxes[3] * self.canvas_height / BOXES_PER_SIDE
+        x1 = self.selected_boxes[0] * self.canvas_width / CONFIG['width']
+        y1 = self.selected_boxes[1] * self.canvas_height / CONFIG['height']
+        x2 = self.selected_boxes[2] * self.canvas_width / CONFIG['width']
+        y2 = self.selected_boxes[3] * self.canvas_height / CONFIG['height']
 
         color = self.window.get_colormap().alloc_color("#999999", False, True)
 
@@ -293,13 +318,13 @@ class RationApp:
         """
         Bind the toggle hotkey.
         """
-        keybinder.bind(HOTKEY, self.hotkey)
+        keybinder.bind(CONFIG['hotkey'], self.hotkey)
     
     def unbind_hotkey(self):
         """
         Unbind the toggle hotkey.
         """
-        keybinder.unbind(HOTKEY)
+        keybinder.unbind(CONFIG['hotkey'])
         
 if __name__ == '__main__':
     app = RationApp()
