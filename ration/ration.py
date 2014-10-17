@@ -14,11 +14,19 @@ import keybinder
 
 import windows
 
+screen_resolution = windows.get_screen_resolution()
 CONFIG = {
-        'hotkey': '<Alt>R',
+        'hotkey': '<Ctrl><Alt>D',
+        'exit_hotkey': 'Escape',
         'canvas_scale': 0.2,
-        'width': 8,
-        'height': 8
+        'columns': 8,
+        'rows': 8,
+        'usable_screen_width': screen_resolution[0],
+        'usable_screen_height': screen_resolution[1],
+        'left_screen_margin': 0,
+        'top_screen_margin': 0,
+        'right_padding': 0,
+        'bottom_padding': 0
 }
 
 CONFIG_FILE = os.path.expanduser('~/.ration')
@@ -75,9 +83,8 @@ class RationApp:
         self.canvas.connect('button-press-event', self.canvas_button_press)
         self.canvas.connect('button-release-event', self.canvas_button_release)
         
-        width, height = windows.get_screen_resolution()
-        width = math.floor(width * CONFIG['canvas_scale'] / CONFIG['width']) * CONFIG['width'] + 1
-        height = math.floor(height * CONFIG['canvas_scale'] / CONFIG['height']) * CONFIG['height'] + 1
+        width = math.floor(CONFIG['usable_screen_width'] * CONFIG['canvas_scale'] / CONFIG['columns']) * CONFIG['columns'] + 1
+        height = math.floor(CONFIG['usable_screen_height'] * CONFIG['canvas_scale'] / CONFIG['rows']) * CONFIG['rows'] + 1
 
         self.setup_status_icon()
         
@@ -258,12 +265,12 @@ class RationApp:
         """
         Draw the selection grid onto the back-buffer.
         """
-        for i in range(0, CONFIG['width'] + 1):
-            x = (self.canvas_width / CONFIG['width']) * i
+        for i in range(0, CONFIG['columns'] + 1):
+            x = (self.canvas_width / CONFIG['columns']) * i
             self.buffer_pixmap.draw_line(self.window.get_style().black_gc, x, 0, x, self.canvas_height)
         
-        for j in range(0, CONFIG['height'] + 1):
-            y = (self.canvas_height / CONFIG['height']) * j
+        for j in range(0, CONFIG['rows'] + 1):
+            y = (self.canvas_height / CONFIG['rows']) * j
             self.buffer_pixmap.draw_line(self.window.get_style().black_gc, 0, y, self.canvas_width, y)
     
     def draw_selection(self):
@@ -284,10 +291,10 @@ class RationApp:
         """
         Draw the selected boxes in a different color.
         """
-        x1 = self.selected_boxes[0] * self.canvas_width / CONFIG['width']
-        y1 = self.selected_boxes[1] * self.canvas_height / CONFIG['height']
-        x2 = self.selected_boxes[2] * self.canvas_width / CONFIG['width']
-        y2 = self.selected_boxes[3] * self.canvas_height / CONFIG['height']
+        x1 = self.selected_boxes[0] * self.canvas_width / CONFIG['columns']
+        y1 = self.selected_boxes[1] * self.canvas_height / CONFIG['rows']
+        x2 = self.selected_boxes[2] * self.canvas_width / CONFIG['columns']
+        y2 = self.selected_boxes[3] * self.canvas_height / CONFIG['rows']
 
         color = self.window.get_colormap().alloc_color("#999999", False, True)
 
