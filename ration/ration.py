@@ -52,12 +52,16 @@ class RationApp:
                 cfg.readfp(f)
 
             for option in CONFIG:
-                method = 'getint' if type(CONFIG[option]) == int else 'get'
-
                 try:
-                    CONFIG[option] = getattr(cfg, method)('Config', option)
+                    CONFIG[option] = cfg.getint('Config', option)
                 except:
-                    continue
+                    try:
+                        CONFIG[option] = cfg.getfloat('Config', option)
+                    except:
+                        try:
+                            CONFIG[option] = cfg.get('Config', option)
+                        except:
+                            pass
 
         """
         Setup the window and canvas.
