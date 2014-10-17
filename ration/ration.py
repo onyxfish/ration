@@ -18,6 +18,7 @@ screen_resolution = windows.get_screen_resolution()
 CONFIG = {
         'hotkey': '<Ctrl><Alt>D',
         'exit_hotkey': 'Escape',
+        'hide_after_arrangement': True,
         'canvas_scale': 0.2,
         'columns': 8,
         'rows': 8,
@@ -186,19 +187,24 @@ class RationApp:
         self.mouse_down = None
         
         window_id, window_name = windows.select_window()
-        
+
+        resize_occurred = False
         if window_id != hex(self.window.window.xid)[:-1] and \
             'Edge Panel' not in window_name and \
             'x-nautilus-desktop' != window_name:
             # If all boxes selected then maximize instead of resizing
-            if self.selected_boxes == (0, 0, CONFIG['width'], CONFIG['height']):
+            if self.selected_boxes == [0, 0, CONFIG['columns'], CONFIG['rows']]:
                 windows.maximize_window(window_id)
-            
-            windows.resize_window(window_id, *self.new_window_size)
+            else:
+                windows.resize_window(window_id, *self.new_window_size)
+            resize_occurred = True
         
         self.clear_buffer()
         self.draw_grid()
         self.blit_buffer()
+
+        if resize_occurred and CONFIG['hide_after_arrangement']:
+            self.hide()
         
         return True
         
