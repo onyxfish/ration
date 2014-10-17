@@ -240,20 +240,26 @@ class RationApp:
         """
         Use mouse coordinates to determine which boxes have been selected.
         """
-        self.selected_boxes = (int(math.floor(self.selection[0] / (self.canvas_width / CONFIG['width']))),
-                               int(math.floor(self.selection[1] / (self.canvas_height / CONFIG['height']))),
-                               int(math.floor(self.selection[2] / (self.canvas_width / CONFIG['width'])) + 1),
-                               int(math.floor(self.selection[3] / (self.canvas_height / CONFIG['height'])) + 1))
-        
+        self.selected_boxes = (min(int(math.floor(self.selection[0] / (self.canvas_width / CONFIG['columns']))), CONFIG['columns']),
+                               min(int(math.floor(self.selection[1] / (self.canvas_height / CONFIG['rows']))), CONFIG['rows']),
+                               min(int(math.floor(self.selection[2] / (self.canvas_width / CONFIG['columns'])) + 1), CONFIG['columns']),
+                               min(int(math.floor(self.selection[3] / (self.canvas_height / CONFIG['rows'])) + 1), CONFIG['rows']))
+
+        self.selected_boxes = [max(0, x) for x in self.selected_boxes]
+
     def compute_new_window_size(self):
         """
         Translate the selection size to the actual screen size a window should be resized too.
         """
-        self.new_window_size = (self.selected_boxes[0] * self.canvas_width / CONFIG['width'] / CONFIG['canvas_scale'],
-                                self.selected_boxes[1] * self.canvas_height / CONFIG['height'] / CONFIG['canvas_scale'],
-                                (self.selected_boxes[2] - self.selected_boxes[0]) * self.canvas_width / CONFIG['width'] / CONFIG['canvas_scale'],
-                                (self.selected_boxes[3] - self.selected_boxes[1]) * self.canvas_height / CONFIG['height'] / CONFIG['canvas_scale'])
-    
+        self.new_window_size = (self.selected_boxes[0] * CONFIG['usable_screen_width'] / CONFIG['columns']
+                                    + CONFIG['left_screen_margin'],
+                                self.selected_boxes[1] * CONFIG['usable_screen_height'] / CONFIG['rows']
+                                    + CONFIG['top_screen_margin'],
+                                (self.selected_boxes[2] - self.selected_boxes[0]) * CONFIG['usable_screen_width'] / CONFIG['columns']
+                                    - CONFIG['right_padding'],
+                                (self.selected_boxes[3] - self.selected_boxes[1]) * CONFIG['usable_screen_height'] / CONFIG['rows']
+                                    - CONFIG['bottom_padding'])
+
     def clear_buffer(self):
         """
         Clear the back-buffer.
