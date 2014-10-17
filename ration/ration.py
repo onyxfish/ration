@@ -91,13 +91,13 @@ class RationApp:
         self.window.set_size_request(int(width), int(height))
         self.window.show_all()
         
-        self.bind_hotkey()
+        self.bind_hotkeys()
         
     def go(self):
         """
         Launch the program main loop.
         """
-        atexit.register(self.unbind_hotkey)
+        atexit.register(self.unbind_hotkeys)
         gtk.main()
         
     def setup_status_icon(self):
@@ -317,27 +317,37 @@ class RationApp:
             self.window.get_style().fg_gc[gtk.STATE_NORMAL], 
             self.buffer_pixmap, 
             0, 0, 0, 0, self.canvas_width, self.canvas_height)
+
+    def hide(self):
+        self.window.hide()
+        keybinder.unbind('Escape')
+
+    def show(self):
+        self.window.show()
+        keybinder.bind('Escape', self.hide)
         
     def hotkey(self):
         """
         Toggle the visibility of the window.
         """
         if self.window.get_visible():
-            self.window.hide()
+            self.hide()
         else:
-            self.window.show()
+            self.show()
         
-    def bind_hotkey(self):
+    def bind_hotkeys(self):
         """
-        Bind the toggle hotkey.
+        Bind the toggle and hide hotkeys.
         """
         keybinder.bind(CONFIG['hotkey'], self.hotkey)
+        keybinder.bind(CONFIG['exit_hotkey'], self.hide)
     
-    def unbind_hotkey(self):
+    def unbind_hotkeys(self):
         """
-        Unbind the toggle hotkey.
+        Unbind the toggle and hide hotkeys.
         """
         keybinder.unbind(CONFIG['hotkey'])
+        keybinder.unbind('Escape')
         
 if __name__ == '__main__':
     app = RationApp()
