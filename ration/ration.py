@@ -14,11 +14,20 @@ import keybinder
 
 import windows
 
+screen_resolution = windows.get_screen_resolution()
 CONFIG = {
-        'hotkey': '<Alt>R',
+        'hotkey': '<Ctrl><Alt>D',
+        'exit_hotkey': 'Escape',
+        'hide_after_arrangement': True,
         'canvas_scale': 0.2,
-        'width': 8,
-        'height': 8
+        'columns': 8,
+        'rows': 8,
+        'usable_screen_width': screen_resolution[0],
+        'usable_screen_height': screen_resolution[1],
+        'left_screen_margin': 0,
+        'top_screen_margin': 0,
+        'right_padding': 0,
+        'bottom_padding': 0
 }
 
 CONFIG_FILE = os.path.expanduser('~/.ration')
@@ -43,12 +52,16 @@ class RationApp:
                 cfg.readfp(f)
 
             for option in CONFIG:
-                method = 'getint' if type(CONFIG[option]) == int else 'get'
-
                 try:
-                    CONFIG[option] = getattr(cfg, method)('Config', option)
+                    CONFIG[option] = cfg.getint('Config', option)
                 except:
-                    continue
+                    try:
+                        CONFIG[option] = cfg.getfloat('Config', option)
+                    except:
+                        try:
+                            CONFIG[option] = cfg.get('Config', option)
+                        except:
+                            pass
 
         """
         Setup the window and canvas.
@@ -75,22 +88,21 @@ class RationApp:
         self.canvas.connect('button-press-event', self.canvas_button_press)
         self.canvas.connect('button-release-event', self.canvas_button_release)
         
-        width, height = windows.get_screen_resolution()
-        width = math.floor(width * CONFIG['canvas_scale'] / CONFIG['width']) * CONFIG['width'] + 1
-        height = math.floor(height * CONFIG['canvas_scale'] / CONFIG['height']) * CONFIG['height'] + 1
+        width = math.floor(CONFIG['usable_screen_width'] * CONFIG['canvas_scale'] / CONFIG['columns']) * CONFIG['columns'] + 1
+        height = math.floor(CONFIG['usable_screen_height'] * CONFIG['canvas_scale'] / CONFIG['rows']) * CONFIG['rows'] + 1
 
         self.setup_status_icon()
         
         self.window.set_size_request(int(width), int(height))
         self.window.show_all()
         
-        self.bind_hotkey()
+        self.bind_hotkeys()
         
     def go(self):
         """
         Launch the program main loop.
         """
-        atexit.register(self.unbind_hotkey)
+        atexit.register(self.unbind_hotkeys)
         gtk.main()
         
     def setup_status_icon(self):
@@ -179,19 +191,24 @@ class RationApp:
         self.mouse_down = None
         
         window_id, window_name = windows.select_window()
-        
+
+        resize_occurred = False
         if window_id != hex(self.window.window.xid)[:-1] and \
             'Edge Panel' not in window_name and \
             'x-nautilus-desktop' != window_name:
             # If all boxes selected then maximize instead of resizing
-            if self.selected_boxes == (0, 0, CONFIG['width'], CONFIG['height']):
+            if self.selected_boxes == [0, 0, CONFIG['columns'], CONFIG['rows']]:
                 windows.maximize_window(window_id)
-            
-            windows.resize_window(window_id, *self.new_window_size)
+            else:
+                windows.resize_window(window_id, *self.new_window_size)
+            resize_occurred = True
         
         self.clear_buffer()
         self.draw_grid()
         self.blit_buffer()
+
+        if resize_occurred and CONFIG['hide_after_arrangement']:
+            self.hide()
         
         return True
         
@@ -233,20 +250,26 @@ class RationApp:
         """
         Use mouse coordinates to determine which boxes have been selected.
         """
-        self.selected_boxes = (int(math.floor(self.selection[0] / (self.canvas_width / CONFIG['width']))),
-                               int(math.floor(self.selection[1] / (self.canvas_height / CONFIG['height']))),
-                               int(math.floor(self.selection[2] / (self.canvas_width / CONFIG['width'])) + 1),
-                               int(math.floor(self.selection[3] / (self.canvas_height / CONFIG['height'])) + 1))
-        
+        self.selected_boxes = (min(int(math.floor(self.selection[0] / (self.canvas_width / CONFIG['columns']))), CONFIG['columns']),
+                               min(int(math.floor(self.selection[1] / (self.canvas_height / CONFIG['rows']))), CONFIG['rows']),
+                               min(int(math.floor(self.selection[2] / (self.canvas_width / CONFIG['columns'])) + 1), CONFIG['columns']),
+                               min(int(math.floor(self.selection[3] / (self.canvas_height / CONFIG['rows'])) + 1), CONFIG['rows']))
+
+        self.selected_boxes = [max(0, x) for x in self.selected_boxes]
+
     def compute_new_window_size(self):
         """
         Translate the selection size to the actual screen size a window should be resized too.
         """
-        self.new_window_size = (self.selected_boxes[0] * self.canvas_width / CONFIG['width'] / CONFIG['canvas_scale'],
-                                self.selected_boxes[1] * self.canvas_height / CONFIG['height'] / CONFIG['canvas_scale'],
-                                (self.selected_boxes[2] - self.selected_boxes[0]) * self.canvas_width / CONFIG['width'] / CONFIG['canvas_scale'],
-                                (self.selected_boxes[3] - self.selected_boxes[1]) * self.canvas_height / CONFIG['height'] / CONFIG['canvas_scale'])
-    
+        self.new_window_size = (self.selected_boxes[0] * CONFIG['usable_screen_width'] / CONFIG['columns']
+                                    + CONFIG['left_screen_margin'],
+                                self.selected_boxes[1] * CONFIG['usable_screen_height'] / CONFIG['rows']
+                                    + CONFIG['top_screen_margin'],
+                                (self.selected_boxes[2] - self.selected_boxes[0]) * CONFIG['usable_screen_width'] / CONFIG['columns']
+                                    - CONFIG['right_padding'],
+                                (self.selected_boxes[3] - self.selected_boxes[1]) * CONFIG['usable_screen_height'] / CONFIG['rows']
+                                    - CONFIG['bottom_padding'])
+
     def clear_buffer(self):
         """
         Clear the back-buffer.
@@ -258,12 +281,12 @@ class RationApp:
         """
         Draw the selection grid onto the back-buffer.
         """
-        for i in range(0, CONFIG['width'] + 1):
-            x = (self.canvas_width / CONFIG['width']) * i
+        for i in range(0, CONFIG['columns'] + 1):
+            x = (self.canvas_width / CONFIG['columns']) * i
             self.buffer_pixmap.draw_line(self.window.get_style().black_gc, x, 0, x, self.canvas_height)
         
-        for j in range(0, CONFIG['height'] + 1):
-            y = (self.canvas_height / CONFIG['height']) * j
+        for j in range(0, CONFIG['rows'] + 1):
+            y = (self.canvas_height / CONFIG['rows']) * j
             self.buffer_pixmap.draw_line(self.window.get_style().black_gc, 0, y, self.canvas_width, y)
     
     def draw_selection(self):
@@ -284,10 +307,10 @@ class RationApp:
         """
         Draw the selected boxes in a different color.
         """
-        x1 = self.selected_boxes[0] * self.canvas_width / CONFIG['width']
-        y1 = self.selected_boxes[1] * self.canvas_height / CONFIG['height']
-        x2 = self.selected_boxes[2] * self.canvas_width / CONFIG['width']
-        y2 = self.selected_boxes[3] * self.canvas_height / CONFIG['height']
+        x1 = self.selected_boxes[0] * self.canvas_width / CONFIG['columns']
+        y1 = self.selected_boxes[1] * self.canvas_height / CONFIG['rows']
+        x2 = self.selected_boxes[2] * self.canvas_width / CONFIG['columns']
+        y2 = self.selected_boxes[3] * self.canvas_height / CONFIG['rows']
 
         color = self.window.get_colormap().alloc_color("#999999", False, True)
 
@@ -304,27 +327,37 @@ class RationApp:
             self.window.get_style().fg_gc[gtk.STATE_NORMAL], 
             self.buffer_pixmap, 
             0, 0, 0, 0, self.canvas_width, self.canvas_height)
+
+    def hide(self):
+        self.window.hide()
+        keybinder.unbind('Escape')
+
+    def show(self):
+        self.window.show()
+        keybinder.bind('Escape', self.hide)
         
     def hotkey(self):
         """
         Toggle the visibility of the window.
         """
         if self.window.get_visible():
-            self.window.hide()
+            self.hide()
         else:
-            self.window.show()
+            self.show()
         
-    def bind_hotkey(self):
+    def bind_hotkeys(self):
         """
-        Bind the toggle hotkey.
+        Bind the toggle and hide hotkeys.
         """
         keybinder.bind(CONFIG['hotkey'], self.hotkey)
+        keybinder.bind(CONFIG['exit_hotkey'], self.hide)
     
-    def unbind_hotkey(self):
+    def unbind_hotkeys(self):
         """
-        Unbind the toggle hotkey.
+        Unbind the toggle and hide hotkeys.
         """
         keybinder.unbind(CONFIG['hotkey'])
+        keybinder.unbind('Escape')
         
 if __name__ == '__main__':
     app = RationApp()
