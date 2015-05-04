@@ -9,7 +9,7 @@ setup(name='ration',
       author_email='staringmonkey@gmail.com',
       url='http://github.com/bouvard/ration',
       license='MIT',
-      
+
       classifiers=[
                      'Development Status :: 3 - Alpha',
                      'Environment :: X11 Applications :: Gnome',
@@ -21,9 +21,9 @@ setup(name='ration',
                      'Topic :: Desktop Environment :: Gnome',
                      'Topic :: Utilities'
                     ],
-      
+
       long_description='A Divvy-like application for quickly arranging and resizing windows in GTK-based Linux distributions.',
-      
+
       packages=['ration'],
       scripts=['scripts/ration'],
       data_files=[('share/applications', ['data/ration.desktop'])]

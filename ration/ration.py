@@ -73,13 +73,13 @@ class RationApp:
         self.window.set_keep_above(True)
         self.window.set_skip_pager_hint(True)
         self.window.set_skip_taskbar_hint(True)
-        
+
         self.canvas = gtk.DrawingArea()
         self.canvas.set_events(
-            gtk.gdk.POINTER_MOTION_MASK | gtk.gdk.POINTER_MOTION_HINT_MASK | 
+            gtk.gdk.POINTER_MOTION_MASK | gtk.gdk.POINTER_MOTION_HINT_MASK |
             gtk.gdk.BUTTON_PRESS_MASK | gtk.gdk.BUTTON_RELEASE_MASK)
         self.window.add(self.canvas)
-        
+
         self.window.connect('destroy', gtk.main_quit)
         self.window.connect('destroy-event', gtk.main_quit)
         self.canvas.connect('configure-event', self.canvas_configure)
@@ -87,24 +87,24 @@ class RationApp:
         self.canvas.connect('motion-notify-event', self.canvas_motion)
         self.canvas.connect('button-press-event', self.canvas_button_press)
         self.canvas.connect('button-release-event', self.canvas_button_release)
-        
+
         width = math.floor(CONFIG['usable_screen_width'] * CONFIG['canvas_scale'] / CONFIG['columns']) * CONFIG['columns'] + 1
         height = math.floor(CONFIG['usable_screen_height'] * CONFIG['canvas_scale'] / CONFIG['rows']) * CONFIG['rows'] + 1
 
         self.setup_status_icon()
-        
+
         self.window.set_size_request(int(width), int(height))
         self.window.show_all()
-        
+
         self.bind_hotkeys()
-        
+
     def go(self):
         """
         Launch the program main loop.
         """
         atexit.register(self.unbind_hotkeys)
         gtk.main()
-        
+
     def setup_status_icon(self):
         """
         Setup the status icon that functions as a main menu.
@@ -122,74 +122,74 @@ class RationApp:
 
         self.status_icon.connect('activate', self.status_activate)
         self.status_icon.connect('popup-menu', self.status_popup_menu)
-    
+
     def status_activate(self, status_icon):
         """
         Toggle the visiblity of the app window.
         """
         self.hotkey()
-        
+
     def status_popup_menu(self, status_icon, button, time):
         """
         Show the application menu.
         """
         self.menu.popup(None, None, None, button, time)
-    
+
     def menu_quit(self, menu_item):
         """
         Exit the application from menu.
         """
         gtk.main_quit()
-    
+
     def canvas_configure(self, widget, event):
         """
         Configure the rendering back-buffer.
         """
         x, y, self.canvas_width, self.canvas_height = widget.get_allocation()
-        
+
         self.buffer_pixmap = gtk.gdk.Pixmap(widget.window, self.canvas_width, self.canvas_height)
         self.clear_buffer()
-        
+
         return True
-    
+
     def canvas_expose(self, widget, event):
         """
         Render the back-buffer to the canvas.
         """
         x, y, width, height = event.area
-        
+
         widget.window.draw_drawable(
-            self.window.get_style().fg_gc[gtk.STATE_NORMAL], 
-            self.buffer_pixmap, 
+            self.window.get_style().fg_gc[gtk.STATE_NORMAL],
+            self.buffer_pixmap,
             x, y, x, y, width, height)
 
         return False
-    
+
     def canvas_motion(self, widget, event):
         """
         Redraw the canvas with the latest selection.
         """
         if self.mouse_down:
             self.update(event)
-        
+
         return True
-    
+
     def canvas_button_press(self, widget, event):
         """
         Record mouse coordinates for drawing the selection box.
         """
         self.mouse_down = (event.x, event.y)
-        
+
         return True
-    
+
     def canvas_button_release(self, widget, event):
         """
         Redraw the canvas with the latest selection.
         """
         self.update(event, selection=False)
-        
+
         self.mouse_down = None
-        
+
         window_id, window_name = windows.select_window()
 
         resize_occurred = False
@@ -202,16 +202,16 @@ class RationApp:
             else:
                 windows.resize_window(window_id, *self.new_window_size)
             resize_occurred = True
-        
+
         self.clear_buffer()
         self.draw_grid()
         self.blit_buffer()
 
         if resize_occurred and CONFIG['hide_after_arrangement']:
             self.hide()
-        
+
         return True
-        
+
     def update(self, event, selection=True):
         """
         Updates selection coordinates and redraws the GUI.
@@ -224,28 +224,28 @@ class RationApp:
         self.draw_grid()
 #        if selection: self.draw_selection()
         self.blit_buffer()
-        
+
     def compute_selection_rectangle(self, event):
         """
         Compute the shape of the selection, taking into account negative selection coordinates.
-        
+
         (i.e. lower-right to upper-left)
         """
         x = self.mouse_down[0]
         y = self.mouse_down[1]
         width = event.x - x
         height = event.y - y
-        
+
         if width < 0:
             width = -width
             x -= width
-            
+
         if height < 0:
             height = -height
             y -= height
-            
+
         self.selection = (int(x), int(y), int(x + width), int(y + height))
-    
+
     def compute_selected_boxes(self):
         """
         Use mouse coordinates to determine which boxes have been selected.
@@ -276,7 +276,7 @@ class RationApp:
         """
         self.buffer_pixmap.draw_rectangle(self.window.get_style().white_gc, True, 0, 0, self.canvas_width, self.canvas_height)
         self.draw_grid()
-        
+
     def draw_grid(self):
         """
         Draw the selection grid onto the back-buffer.
@@ -284,25 +284,25 @@ class RationApp:
         for i in range(0, CONFIG['columns'] + 1):
             x = (self.canvas_width / CONFIG['columns']) * i
             self.buffer_pixmap.draw_line(self.window.get_style().black_gc, x, 0, x, self.canvas_height)
-        
+
         for j in range(0, CONFIG['rows'] + 1):
             y = (self.canvas_height / CONFIG['rows']) * j
             self.buffer_pixmap.draw_line(self.window.get_style().black_gc, 0, y, self.canvas_width, y)
-    
+
     def draw_selection(self):
         """
         Draw the current selection box onto the back-buffer.
         """
         style = self.window.get_style()
-        
+
         self.buffer_pixmap.draw_rectangle(
-            style.fg_gc[gtk.STATE_NORMAL], 
-            False, 
+            style.fg_gc[gtk.STATE_NORMAL],
+            False,
             self.selection[0],
             self.selection[1],
             self.selection[2] - self.selection[0],
             self.selection[3] - self.selection[1])
-        
+
     def draw_selected_boxes(self):
         """
         Draw the selected boxes in a different color.
@@ -316,16 +316,16 @@ class RationApp:
 
         gc = self.window.window.new_gc()
         gc.foreground = color
-        
+
         self.buffer_pixmap.draw_rectangle(gc, True, int(x1), int(y1), int(x2 - x1), int(y2 - y1))
-   
+
     def blit_buffer(self):
         """
         Copy the back-buffer to the visible canvas.
         """
         self.canvas.window.draw_drawable(
-            self.window.get_style().fg_gc[gtk.STATE_NORMAL], 
-            self.buffer_pixmap, 
+            self.window.get_style().fg_gc[gtk.STATE_NORMAL],
+            self.buffer_pixmap,
             0, 0, 0, 0, self.canvas_width, self.canvas_height)
 
     def hide(self):
@@ -335,7 +335,7 @@ class RationApp:
     def show(self):
         self.window.show()
         keybinder.bind('Escape', self.hide)
-        
+
     def hotkey(self):
         """
         Toggle the visibility of the window.
@@ -344,21 +344,21 @@ class RationApp:
             self.hide()
         else:
             self.show()
-        
+
     def bind_hotkeys(self):
         """
         Bind the toggle and hide hotkeys.
         """
         keybinder.bind(CONFIG['hotkey'], self.hotkey)
         keybinder.bind(CONFIG['exit_hotkey'], self.hide)
-    
+
     def unbind_hotkeys(self):
         """
         Unbind the toggle and hide hotkeys.
         """
         keybinder.unbind(CONFIG['hotkey'])
         keybinder.unbind('Escape')
-        
+
 if __name__ == '__main__':
     app = RationApp()
     app.go()
