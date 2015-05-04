@@ -22,7 +22,9 @@ h5. Usage
 
 Drag a selection in the grid and then click a window to automatically resize it to fill that portion of the screen.
 
-Show/hide the grid by pressing <Alt>R (currently not configurable).
+Show/hide the grid by pressing Ctrl+Alt+D.
+
+Available configuration options can be found at the top of "ration/ration.py":ration/ration.py
 
 Exit the application by right-clicking on its icon in the status bar and selecting Quit.
 
