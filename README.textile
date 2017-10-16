@@ -8,7 +8,7 @@ h5. Requirements
 
 Python requires several libraries. To install them on Debian-based systems (e.g. Ubuntu) execute the follow command:
 
-pre. sudo apt-get install python-gtk2 python-keybinder wmctrl
+pre. sudo apt-get install python-gtk2 python-pip python-keybinder wmctrl
 
 h5. Installation
 
